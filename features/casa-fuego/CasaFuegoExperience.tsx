@@ -30,7 +30,7 @@ export function CasaFuegoExperience() {
   const dish = dishes.find((item) => item.id === dishId) ?? dishes[0];
   const openReservation = () => { setConfirmed(false); setReserveOpen(true); };
 
-  return <main className="fuego-shell">
+  return <main className="fuego-shell" id="main-content">
     <header className="fuego-nav"><a href="#top" className="fuego-brand" data-demo-brand>{brand}<span>COCINA AL FUEGO</span></a><nav aria-label="Restaurant navigation"><a href="#menu">The menu</a><a href="#room">The room</a><a href="#visit">Visit us</a></nav><button type="button" onClick={openReservation}>Find a table <ArrowIcon size={14} /></button></header>
     <section id="top" className="fuego-hero">
       <div className="fuego-hero-photo"><Image src="/images/casa-fuego.webp" alt="Warmly lit restaurant with intimate tables and welcoming evening atmosphere" fill priority sizes="100vw" /></div>
@@ -42,7 +42,10 @@ export function CasaFuegoExperience() {
     <section id="menu" className="fuego-menu">
       <div className="fuego-menu-head"><span>FROM OUR SAMPLE MENU</span><h2>Built around<br /><em>the embers.</em></h2><p>Seasonal ingredients. A wood-fired grill. Plates made for passing around the table.</p></div>
       <div className="fuego-menu-body">
-        <div className="fuego-menu-feature" aria-live="polite"><span>{dish.course}</span><motion.div key={dish.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .3 }}><h3>{dish.name}<i> / ${dish.price}</i></h3><p>{dish.description}</p><em>{dish.pairing}</em></motion.div><small>Menu concept · Please discuss allergies with your server.</small></div>
+        <div className="fuego-menu-feature" aria-live="polite">
+          <div className="fuego-menu-photo"><Image src="/images/fuego-food.webp" alt="A fire-grilled sharing board plated for the table" fill sizes="(max-width: 700px) 100vw, 40vw" /><span>FRESH OFF THE GRILL</span></div>
+          <div className="fuego-menu-copy"><span>{dish.course}</span><motion.div key={dish.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .3 }}><h3>{dish.name}<i> / ${dish.price}</i></h3><p>{dish.description}</p><em>{dish.pairing}</em></motion.div><small>Menu concept · Please discuss allergies with your server.</small></div>
+        </div>
         <div className="fuego-dish-list" role="group" aria-label="Explore the sample menu">{dishes.map((item) => <button type="button" key={item.id} aria-pressed={dishId === item.id} className={dishId === item.id ? "active" : ""} onClick={() => setDishId(item.id)}><span aria-hidden="true">{dishId === item.id ? "↗" : "+"}</span><div><small>{item.course}</small><strong>{item.name}</strong><p>{item.note}</p></div><b>${item.price}</b></button>)}</div>
       </div>
     </section>

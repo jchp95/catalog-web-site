@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { MotionProvider } from "@/components/ui/MotionProvider";
 import "@/components/sales/sales.css";
 
 export const metadata: Metadata = {
@@ -20,7 +21,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <a href="#main-content" className="skip-link">Skip to main content</a>
+        <MotionProvider>{children}</MotionProvider>
+      </body>
     </html>
   );
 }

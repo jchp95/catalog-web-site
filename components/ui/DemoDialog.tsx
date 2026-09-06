@@ -73,7 +73,7 @@ export function DemoDialog({ open, onClose, label, children, className = "", pan
       aria-modal="true"
       className={`demo-dialog ${className}`.trim()}
       onCancel={(event) => { event.preventDefault(); closeRef.current(); }}
-      onClose={() => { if (open) closeRef.current(); }}
+      onClose={() => { if (open && !dialogRef.current?.open) closeRef.current(); }}
       onPointerDown={(event) => { pointerStartedOutside.current = event.target === event.currentTarget; }}
       onClick={(event) => {
         if (pointerStartedOutside.current && event.target === event.currentTarget) closeRef.current();

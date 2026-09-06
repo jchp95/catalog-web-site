@@ -59,7 +59,7 @@ export function ApexExperience() {
   const openQuote = () => { setConfirmed(false); setQuoteOpen(true); };
 
   return (
-    <main className="apex-shell">
+    <main className="apex-shell" id="main-content">
       <header className="apex-nav">
         <a href="#top" className="apex-logo" data-demo-brand><i aria-hidden="true" />{brand}</a>
         <span className="apex-nav-location">DETAILING STUDIO / {city}</span>
