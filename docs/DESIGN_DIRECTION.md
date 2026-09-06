@@ -30,11 +30,15 @@ World: shoreline maps, architecture, advisory and property discovery. Signature:
 
 World: house plans, pipes, circuits, HVAC schematics and dispatch. Signature: blueprint system diagram plus guided service intake. White technical paper, navy and service blue.
 
+## Selective 3D
+
+The showroom hero and APEX each carry one real-time WebGL moment — a drag-to-explore photo gallery and a drag-to-inspect vehicle stage — chosen because both are natural "look at this from every angle" gestures, not because 3D was owed to every section. See `docs/ARCHITECTURE.md#progressive-3d` for the engineering rules that keep them from ever being load-bearing.
+
 ## Rejected defaults
 
 - one component template recolored six times;
 - arbitrary glass cards;
 - gradient blobs as a substitute for art direction;
 - animations attached to every section;
-- 3D/WebGL without a business reason;
+- 3D/WebGL without a specific interaction it earns its place for;
 - fake metrics presented as factual business claims outside demo context.

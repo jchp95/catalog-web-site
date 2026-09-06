@@ -34,13 +34,17 @@
 .deck-live { display: flex; align-items: center; gap: 6px; }
 .deck-live::before { content: ''; width: 5px; height: 5px; background: #337965; border-radius: 50%; }
 .live-deck { height: clamp(400px, 38vw, 600px); position: relative; color: #fff; background: #2f343e; transform-origin: center; border-radius: 0 0 8px 8px; }
-.deck-scene { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; }
+.deck-scene { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; touch-action: none; }
+.deck-scene canvas { display: block; }
+.deck-photo-frame { position: absolute; inset: 0; }
 .deck-photo { object-fit: cover; object-position: 50% 43%; }
-.deck-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(4,12,22,.18), transparent 30%, rgba(4,12,22,.67)); }
+.deck-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(4,12,22,.18), transparent 30%, rgba(4,12,22,.67)); pointer-events: none; }
+.deck-text { position: absolute; inset: 0; pointer-events: none; }
 .deck-brand { position: absolute; top: 25px; left: 28px; right: 28px; display: flex; justify-content: space-between; gap: 15px; align-items: center; }
 .deck-brand b { font-size: 19px; letter-spacing: -.02em; }
 .deck-brand > span { font-size: 10px; }
 .deck-copy { position: absolute; left: 28px; bottom: 55px; right: 24px; }
+.deck-copy .deck-enter { pointer-events: auto; }
 .deck-copy > span { font-size: 12px; }
 .deck-copy h2 { white-space: pre-line; margin: 15px 0 23px; font-size: clamp(44px, 4.7vw, 77px); line-height: .98; font-weight: 600; letter-spacing: -.03em; }
 .preview-mireya .deck-copy h2, .preview-harbor .deck-copy h2, .preview-casa-fuego .deck-copy h2 { font-family: var(--font-serif); font-weight: 400; }
@@ -51,7 +55,7 @@
 .preview-mireya .deck-photo { object-position: 50% 39%; }
 .preview-blackline .deck-copy h2 { text-transform: uppercase; font-weight: 800; }
 .preview-blackline .deck-enter { background: #e85d34; color: #101010; }
-.deck-caption { position: absolute; bottom: 20px; left: 28px; font-size: 9px; color: #eee; }
+.deck-caption { position: absolute; bottom: 20px; left: 28px; font-size: 9px; color: #eee; pointer-events: none; }
 .deck-controls { display: flex; gap: 18px; justify-content: space-between; align-items: center; padding-top: 12px; }
 .deck-controls > div { display: flex; }
 .deck-controls button { border: 0; background: transparent; width: 30px; height: 44px; display: grid; place-items: center; }

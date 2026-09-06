@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ArrowIcon } from "@/components/ui/ArrowIcon";
 import { DemoSalesDock } from "@/components/sales/DemoSalesDock";
 import { DemoDialog } from "@/components/ui/DemoDialog";
+import { TiltCard } from "@/components/ui/TiltCard";
 
 type Dish = { id: string; name: string; note: string; price: number; course: string; description: string; pairing: string };
 const dishes: Dish[] = [
@@ -43,7 +44,7 @@ export function CasaFuegoExperience() {
       <div className="fuego-menu-head"><span>FROM OUR SAMPLE MENU</span><h2>Built around<br /><em>the embers.</em></h2><p>Seasonal ingredients. A wood-fired grill. Plates made for passing around the table.</p></div>
       <div className="fuego-menu-body">
         <div className="fuego-menu-feature" aria-live="polite">
-          <div className="fuego-menu-photo"><Image src="/images/fuego-food.webp" alt="A fire-grilled sharing board plated for the table" fill sizes="(max-width: 700px) 100vw, 40vw" /><span>FRESH OFF THE GRILL</span></div>
+          <TiltCard className="fuego-menu-photo" intensity={4}><Image src="/images/fuego-food.webp" alt="A fire-grilled sharing board plated for the table" fill sizes="(max-width: 700px) 100vw, 40vw" /><span>FRESH OFF THE GRILL</span></TiltCard>
           <div className="fuego-menu-copy"><span>{dish.course}</span><motion.div key={dish.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .3 }}><h3>{dish.name}<i> / ${dish.price}</i></h3><p>{dish.description}</p><em>{dish.pairing}</em></motion.div><small>Menu concept · Please discuss allergies with your server.</small></div>
         </div>
         <div className="fuego-dish-list" role="group" aria-label="Explore the sample menu">{dishes.map((item) => <button type="button" key={item.id} aria-pressed={dishId === item.id} className={dishId === item.id ? "active" : ""} onClick={() => setDishId(item.id)}><span aria-hidden="true">{dishId === item.id ? "↗" : "+"}</span><div><small>{item.course}</small><strong>{item.name}</strong><p>{item.note}</p></div><b>${item.price}</b></button>)}</div>

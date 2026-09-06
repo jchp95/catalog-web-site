@@ -12,6 +12,9 @@
 - Central Live Sales Mode launcher.
 - Mobile-first responsive rules for all new verticals.
 - Reduced-motion baseline.
+- Progressive 3D: a drag-to-explore WebGL photo gallery in the showroom hero and a drag-to-inspect 3D vehicle stage in APEX, both code-split and falling back to the ordinary 2D presentation with no WebGL support, reduced motion, or a runtime error.
+- Cursor-reactive 3D tilt (`components/ui/TiltCard.tsx`) on MIREYA's portrait, HARBOR's selected-home photo and CASA FUEGO's menu photo.
+- A missing favicon, a real skip-to-content link and BRIGHTLINE ZIP validation — accessibility/QA gaps closed during the V3 pass.
 
 ## Recommended V4
 

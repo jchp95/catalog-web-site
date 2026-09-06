@@ -7,6 +7,7 @@ import { useState } from "react";
 import { ArrowIcon } from "@/components/ui/ArrowIcon";
 import { DemoDialog } from "@/components/ui/DemoDialog";
 import { DemoSalesDock } from "@/components/sales/DemoSalesDock";
+import { TiltCard } from "@/components/ui/TiltCard";
 
 const services = [
   { id: "signature", name: "Signature cut", note: "A conversation, a considered cut, a beautiful finish.", duration: "75 min", price: 92 },
@@ -66,7 +67,7 @@ export function MireyaExperience() {
         <div className="mireya-hero-foot"><span>HAIR / COLOR / CARE</span><a href="#services">Explore the menu <span>↓</span></a></div>
       </div>
       <motion.figure className="mireya-portrait" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reducedMotion ? 0 : .9 }}>
-        <div className="mireya-photo-frame"><Image src="/images/mireya.webp" alt="An editorial portrait celebrating natural hair, soft texture and personal style" fill priority sizes="(max-width: 720px) 100vw, 50vw" /></div>
+        <TiltCard className="mireya-photo-frame" intensity={4}><Image src="/images/mireya.webp" alt="An editorial portrait celebrating natural hair, soft texture and personal style" fill priority sizes="(max-width: 720px) 100vw, 50vw" /></TiltCard>
         <div className="mireya-photo-mark" aria-hidden="true">m.</div><figcaption><span>Good hair.<br />Your energy.</span><span>{city}<br />By appointment</span></figcaption>
       </motion.figure>
     </section>

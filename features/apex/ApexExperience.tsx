@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { ArrowIcon } from "@/components/ui/ArrowIcon";
 import { DemoSalesDock } from "@/components/sales/DemoSalesDock";
 import { DemoDialog } from "@/components/ui/DemoDialog";
+import { VehicleStage } from "./VehicleStage";
 
 type Vehicle = "Coupe" | "Sedan" | "SUV";
 type PackageId = "reset" | "correct" | "ceramic";
@@ -80,7 +81,7 @@ export function ApexExperience() {
       <section id="config" className="apex-config">
         <div className="apex-config-head"><span>YOUR CAR. YOUR CALL.</span><h2>A finish<br /><em>worth keeping.</em></h2><p>Choose your vehicle and the care it needs. Explore sample pricing before an in-person paint inspection.</p></div>
         <div className="apex-configurator">
-          <div className="config-stage"><div className="config-stage-grid" aria-hidden="true" /><VehicleTop color={paint.hex} /><div className="config-badge"><span>COLOR PREVIEW / ILLUSTRATION</span><b>{paint.name}</b><small>{vehicle} · {activePackage.name}</small></div></div>
+          <div className="config-stage"><div className="config-stage-grid" aria-hidden="true" /><VehicleStage><VehicleTop color={paint.hex} /></VehicleStage><div className="config-badge"><span>COLOR PREVIEW / ILLUSTRATION</span><b>{paint.name}</b><small>{vehicle} · {activePackage.name}</small></div></div>
           <div className="config-controls">
             <fieldset className="control-group"><legend>01 / Your vehicle</legend><div className="segmented">{(["Coupe", "Sedan", "SUV"] as Vehicle[]).map((item) => <button type="button" aria-pressed={vehicle === item} className={vehicle === item ? "active" : ""} key={item} onClick={() => { setVehicle(item); setConfirmed(false); }}>{item}<small>{vehicleBase[item] ? `+$${vehicleBase[item]}` : "Base price"}</small></button>)}</div></fieldset>
             <fieldset className="control-group"><legend>02 / Paint color reference</legend><div className="paint-row">{colors.map((item) => <button type="button" className={paint.name === item.name ? "active" : ""} key={item.name} onClick={() => { setPaint(item); setConfirmed(false); }} aria-pressed={paint.name === item.name}><i style={{ background: item.hex }} /><small>{item.name}</small></button>)}</div></fieldset>

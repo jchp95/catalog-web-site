@@ -78,12 +78,23 @@ Use that layering when a real provider exists: CRM, booking engine, payment proc
 ## Performance rules
 
 - Animate `transform` and `opacity` whenever possible.
-- No WebGL in the shared showroom bundle.
+- No WebGL in the shared showroom bundle — see "Progressive 3D" below.
 - Respect `prefers-reduced-motion` globally.
 - Keep meaningful content available before animation completes.
 - Route-specific CSS/interaction stays with each vertical.
-- Self-host fonts before high-traffic production deployment.
+- Self-host fonts before high-traffic production deployment (done — `public/fonts`).
 - Measure LCP, INP and CLS on deployed builds, not only locally.
+
+## Progressive 3D
+
+Two flagship moments use real-time WebGL (`three`, `@react-three/fiber`, `@react-three/drei`): the showroom hero's drag-to-explore photo gallery (`components/showroom/LiveDeckScene.tsx`) and APEX's drag-to-inspect vehicle stage (`features/apex/VehicleScene3D.tsx`). Both follow the same rule, not just as a preference but as a hard requirement:
+
+1. **The 2D/DOM experience is complete on its own.** Every route works, reads and converts with 3D absent. 3D is layered on top of it, never load-bearing.
+2. **Code-split, never in the initial bundle.** Every 3D component is `next/dynamic(..., { ssr: false })`, so `three`/`fiber`/`drei` ship in one dedicated chunk fetched only by the routes that mount it, at the moment they mount it — verified after each build (`grep` the built chunks for `THREE`/`drei`, confirm no other route references that chunk).
+3. **Upgrade only after mount, only when it is safe.** `lib/webgl.ts#hasWebGL()` and Motion's `useReducedMotion()` gate the swap; SSR and first paint always render the plain 2D version, so there is no hydration mismatch and no motion forced on anyone who asked not to have it.
+4. **A crash falls back, it does not break the page.** `components/ui/Canvas3DBoundary.tsx` wraps every 3D scene — React Three Fiber has no built-in WebGL context-loss recovery, so any render error swaps back to the 2D fallback silently.
+
+A new WebGL moment in another vertical should follow the same four rules; skip any of them only with a specific, documented reason.
 
 ## Accessibility baseline
 
