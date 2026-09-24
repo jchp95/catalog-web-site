@@ -15,6 +15,15 @@
 /output
 *.zip
 
+# CapRover / deploy artifacts (regenerate locally before upload)
+*.tar
+*.tar.gz
+local-showroom-caprover.tar
+
+# scratch / preview work
+.tmp/
+.temp/
+
 # testing
 /coverage
 /playwright-report
@@ -44,6 +53,33 @@ next-env.d.ts
 
 # editor / tooling
 .claude/
+.cursor/
 .vercel
 .idea/
 .vscode/
+
+# Next.js auto agent stubs (recreated by `next dev`)
+/AGENTS.md
+/CLAUDE.md
+
+# ---------------------------------------------------------------------------
+# Munich / Pulso — keep runtime assets, ignore regenerable / unused sources
+# ---------------------------------------------------------------------------
+
+# Unused card stubs & empty image trees
+/public/images/munich-card.png
+/public/images/pulso.png
+/public/images/munich/
+
+# Cut masters (runtime uses .webp only)
+/public/munich/cuts/*.png
+
+# Legacy static prototype (not used by the Next demo)
+/public/munich/lib/
+/public/munich/videos/
+
+# Duplicate / unused source dumps (canonical names stay tracked)
+/public/videos/Munich_*
+/public/videos/Sneaker_*
+/public/videos/munich-turntable.mp4
+/public/videos/munich/

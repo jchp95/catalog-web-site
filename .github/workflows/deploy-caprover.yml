@@ -1,0 +1,76 @@
+# Deploy to CapRover on every push to main (and manual runs).
+# Secrets required (Settings → Secrets and variables → Actions):
+#   CAPROVER_SERVER  e.g. https://captain.apps.solva.click
+#   APP_NAME         e.g. catalog-web-site
+#   APP_TOKEN        CapRover app token (Deployment tab → Enable App Token)
+#
+# Docs: https://caprover.com/docs/ci-cd-integration/deploy-from-github.html
+
+name: Deploy CapRover
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: caprover-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Create CapRover deploy.tar
+        run: |
+          set -euo pipefail
+          tar -cf ./deploy.tar --wildcards \
+            --exclude='./node_modules' \
+            --exclude='./.next' \
+            --exclude='./out' \
+            --exclude='./.git' \
+            --exclude='./.tmp' \
+            --exclude='./.temp' \
+            --exclude='./.claude' \
+            --exclude='./.cursor' \
+            --exclude='./.vscode' \
+            --exclude='./.idea' \
+            --exclude='./.playwright-cli' \
+            --exclude='./coverage' \
+            --exclude='./playwright-report' \
+            --exclude='./test-results' \
+            --exclude='./docs' \
+            --exclude='./README.md' \
+            --exclude='./AGENTS.md' \
+            --exclude='./CLAUDE.md' \
+            --exclude='./start-local.sh' \
+            --exclude='./.DS_Store' \
+            --exclude='./.env' \
+            --exclude='./.env.*' \
+            --exclude='./deploy.tar' \
+            --exclude='./local-showroom-caprover.tar' \
+            --exclude='./*.tar' \
+            --exclude='./*.tar.gz' \
+            --exclude='./tsconfig.tsbuildinfo' \
+            --exclude='./public/munich/cuts/*.png' \
+            --exclude='./public/munich/lib' \
+            --exclude='./public/munich/videos' \
+            --exclude='./public/videos/Munich_*' \
+            --exclude='./public/videos/Sneaker_*' \
+            --exclude='./public/videos/munich-turntable.mp4' \
+            --exclude='./public/images/munich' \
+            --exclude='./public/images/munich-card.png' \
+            --exclude='./public/images/pulso.png' \
+            .
+          ls -lh deploy.tar
+
+      - name: Deploy to CapRover
+        uses: caprover/deploy-from-github@v1.1.2
+        with:
+          server: ${{ secrets.CAPROVER_SERVER }}
+          app: ${{ secrets.APP_NAME }}
+          token: ${{ secrets.APP_TOKEN }}
