@@ -1,0 +1,28 @@
+{
+  "count": 96,
+  "source": "munich-sneaker-exploded.mp4",
+  "size": [
+    1280,
+    720
+  ],
+  "duration": 10,
+  "key": "chroma-green",
+  "phases": {
+    "assembled": [
+      0,
+      0.15
+    ],
+    "exploding": [
+      0.15,
+      0.42
+    ],
+    "open": [
+      0.42,
+      0.68
+    ],
+    "closing": [
+      0.68,
+      1
+    ]
+  }
+}
