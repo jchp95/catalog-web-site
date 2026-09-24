@@ -1,0 +1,32 @@
+{
+  "count": 96,
+  "source": "munich-sneaker-colorways.mp4",
+  "size": [
+    1280,
+    720
+  ],
+  "duration": 10,
+  "key": "chroma-green",
+  "colorways": {
+    "mn": {
+      "start": 0,
+      "end": 0.18,
+      "label": "Mostaza / Azul"
+    },
+    "bn": {
+      "start": 0.2,
+      "end": 0.48,
+      "label": "Hueso / Marino"
+    },
+    "bk": {
+      "start": 0.5,
+      "end": 0.77,
+      "label": "Carbón / Blanco"
+    },
+    "bu": {
+      "start": 0.8,
+      "end": 0.95,
+      "label": "Burdeos / Crema"
+    }
+  }
+}
