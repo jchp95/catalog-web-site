@@ -6,13 +6,13 @@ import { useState } from 'react';
 import { demos, type DemoCategory } from '@/lib/demos';
 import { ArrowIcon } from '@/components/ui/ArrowIcon';
 
-const filters: ('All industries' | DemoCategory)[] = ['All industries', 'Beauty & grooming', 'Food & hospitality', 'Homes & property', 'Automotive'];
+const filters: ('All industries' | DemoCategory)[] = ['All industries', 'Beauty & grooming', 'Food & hospitality', 'Homes & property', 'Automotive', 'Product & retail'];
 
 export function ProjectRail() {
   const [filter, setFilter] = useState<(typeof filters)[number]>('All industries');
   const visible = demos.filter(demo => filter === 'All industries' || demo.category === filter);
   return <>
-    <div className="collection-toolbar"><div className="collection-filters" role="group" aria-label="Filter websites by industry">{filters.map(item => <button type="button" key={item} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}{item === 'All industries' && <span>06</span>}</button>)}</div><p aria-live="polite">{visible.length} {visible.length === 1 ? 'concept' : 'concepts'}</p></div>
+    <div className="collection-toolbar"><div className="collection-filters" role="group" aria-label="Filter websites by industry">{filters.map(item => <button type="button" key={item} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}{item === 'All industries' && <span>08</span>}</button>)}</div><p aria-live="polite">{visible.length} {visible.length === 1 ? 'concept' : 'concepts'}</p></div>
     <div className="project-grid" id="collection-results">
       {visible.map(demo => <article key={demo.slug} className={`project-card preview-${demo.slug}`}>
         <Link href={demo.href} className="project-preview" aria-label={`Explore ${demo.name} ${demo.industry} demo`}>

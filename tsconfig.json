@@ -36,6 +36,8 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "munich-premium-experience",
+    "munich-premium-experience/**"
   ]
 }

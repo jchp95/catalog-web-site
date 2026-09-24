@@ -1,4 +1,4 @@
-export type DemoCategory = 'Beauty & grooming' | 'Food & hospitality' | 'Homes & property' | 'Automotive';
+export type DemoCategory = 'Beauty & grooming' | 'Food & hospitality' | 'Homes & property' | 'Automotive' | 'Product & retail';
 
 export type DemoCard = {
   slug: string;
@@ -58,5 +58,20 @@ export const demos: DemoCard[] = [
     headline: 'Life happens.\nWe fix it.', action: 'Plan a service visit',
     proof: ['Guided service request', 'ZIP validation', 'Visit preferences'],
     href: '/demos/brightline', image: '/images/brightline.webp', imageAlt: 'Welcoming modern family home illuminated at dusk', status: 'live', accent: '#3265d5',
+  },
+  {
+    slug: 'munich',
+    name: 'PULSO',
+    industry: 'Product / footwear',
+    category: 'Product & retail',
+    pitch: 'A cinematic product film controlled by scroll. Orbit the Barru 8290 through every angle.',
+    headline: 'Designed\nfor motion.',
+    action: 'Enter the orbit',
+    proof: ['Frame-by-frame 360°', 'Scroll storytelling', 'Interactive 3D'],
+    href: '/demos/munich',
+    image: '/images/pulso-card.webp',
+    imageAlt: 'Pulso Barru sneaker in mustard suede on a dark studio field',
+    status: 'live',
+    accent: '#c9a227',
   },
 ];
