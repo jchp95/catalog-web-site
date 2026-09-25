@@ -1,12 +1,13 @@
-# Deploy to CapRover on every push to main (and manual runs).
+# Build the Docker image in GitHub Actions, then tell CapRover to pull it.
+# Building on CapRover fails under load with BuildKit
+# "no active session / context deadline exceeded" (large Munich frame context).
 #
-# Repository secrets (Settings → Secrets and variables → Actions → Secrets):
-#   CAPROVER_SERVER  = https://captain.apps.solva.click   (no trailing path)
+# Secrets (Repository secrets, Environment: production):
+#   CAPROVER_SERVER  = https://captain.apps.solva.click
 #   APP_NAME         = catalog-web-site
-#   APP_TOKEN        = token from CapRover → App → Deployment → Enable App Token
+#   APP_TOKEN        = CapRover app Deployment token
 #
-# Must be Repository secrets (not Environment secrets, not Variables).
-# Docs: https://caprover.com/docs/ci-cd-integration/deploy-from-github.html
+# CapRover must be able to pull from GHCR (same registry it already pushes to).
 
 name: Deploy CapRover
 
@@ -15,9 +16,6 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Never cancel an in-flight CapRover deploy: large frame tarballs take long to
-# upload/build, and cancel-in-progress left production on a stale image while
-# newer scrubbed frames sat only on GitHub.
 concurrency:
   group: caprover-deploy
   cancel-in-progress: false
@@ -26,7 +24,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
-    timeout-minutes: 45
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -37,7 +39,6 @@ jobs:
           CAPROVER_SERVER: ${{ secrets.CAPROVER_SERVER }}
           APP_NAME: ${{ secrets.APP_NAME }}
           APP_TOKEN: ${{ secrets.APP_TOKEN }}
-          # Aliases (if secrets were named differently)
           CAPROVER_URL: ${{ secrets.CAPROVER_URL }}
           SERVER_URL: ${{ secrets.SERVER_URL }}
           CAPROVER_APP: ${{ secrets.CAPROVER_APP }}
@@ -50,97 +51,88 @@ jobs:
           SERVER="${SERVER%/}"
 
           if [ -z "$SERVER" ] || [ -z "$APP" ] || [ -z "$TOKEN" ]; then
-            echo "::error::Missing CapRover secrets for this workflow."
-            echo "Add them as Repository secrets (NOT Environment secrets, NOT Variables):"
-            echo "  Settings → Secrets and variables → Actions → New repository secret"
-            echo "Required exact names:"
-            echo "  CAPROVER_SERVER = https://captain.apps.solva.click"
-            echo "  APP_NAME        = catalog-web-site"
-            echo "  APP_TOKEN       = (from CapRover app Deployment tab)"
+            echo "::error::Missing CapRover secrets (CAPROVER_SERVER, APP_NAME, APP_TOKEN)."
             echo "Detected lengths: SERVER=${#SERVER} APP=${#APP} TOKEN=${#TOKEN}"
             exit 1
           fi
 
+          OWNER="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          IMAGE="ghcr.io/${OWNER}/catalog-web-site"
+          TAG="${{ github.sha }}"
+
           echo "server=$SERVER" >> "$GITHUB_OUTPUT"
           echo "app=$APP" >> "$GITHUB_OUTPUT"
-          echo "Using CAPROVER_SERVER=$SERVER APP_NAME=$APP APP_TOKEN_len=${#TOKEN}"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Using CAPROVER_SERVER=$SERVER APP_NAME=$APP IMAGE=$IMAGE:$TAG"
 
-      - name: Create CapRover deploy.tar
+      - name: Verify Munich frames are present
         run: |
           set -euo pipefail
-          tar -cf ./deploy.tar --wildcards \
-            --exclude='./node_modules' \
-            --exclude='./.next' \
-            --exclude='./out' \
-            --exclude='./.git' \
-            --exclude='./.tmp' \
-            --exclude='./.temp' \
-            --exclude='./.claude' \
-            --exclude='./.cursor' \
-            --exclude='./.vscode' \
-            --exclude='./.idea' \
-            --exclude='./.playwright-cli' \
-            --exclude='./coverage' \
-            --exclude='./playwright-report' \
-            --exclude='./test-results' \
-            --exclude='./docs' \
-            --exclude='./README.md' \
-            --exclude='./AGENTS.md' \
-            --exclude='./CLAUDE.md' \
-            --exclude='./start-local.sh' \
-            --exclude='./.DS_Store' \
-            --exclude='./.env' \
-            --exclude='./.env.*' \
-            --exclude='./deploy.tar' \
-            --exclude='./local-showroom-caprover.tar' \
-            --exclude='./*.tar' \
-            --exclude='./*.tar.gz' \
-            --exclude='./tsconfig.tsbuildinfo' \
-            --exclude='./public/munich/cuts/*.png' \
-            --exclude='./public/munich/lib' \
-            --exclude='./public/munich/videos' \
-            --exclude='./public/videos/Munich_*' \
-            --exclude='./public/videos/Sneaker_*' \
-            --exclude='./public/videos/munich-turntable.mp4' \
-            --exclude='./public/images/munich' \
-            --exclude='./public/images/munich-card.png' \
-            --exclude='./public/images/pulso.png' \
-            .
-          ls -lh deploy.tar
-          tar -tf deploy.tar | grep -E '^\./(captain-definition|Dockerfile|package\.json)$|^\./features/munich/' | head -20
-          desktop_frames=$(tar -tf deploy.tar | grep -c '^\./public/frames/munich-yellow/desktop/frame_.*\.png$' || true)
-          explod_frames=$(tar -tf deploy.tar | grep -c '^\./public/frames/munich-yellow/explod/frame_.*\.png$' || true)
-          color_frames=$(tar -tf deploy.tar | grep -c '^\./public/frames/munich-yellow/colorways/frame_.*\.png$' || true)
-          echo "frames in tar: desktop=$desktop_frames explod=$explod_frames colorways=$color_frames"
-          if [ "$desktop_frames" -lt 120 ] || [ "$explod_frames" -lt 96 ] || [ "$color_frames" -lt 96 ]; then
-            echo "::error::deploy.tar missing Munich frame plates (desktop=$desktop_frames explod=$explod_frames colorways=$color_frames)"
-            exit 1
-          fi
-          bytes=$(wc -c < deploy.tar)
-          echo "deploy.tar bytes=$bytes"
-          # Scrubbed orbit+explod+colorways is ~80MB+; a tiny tar means frames were dropped.
-          if [ "$bytes" -lt 50000000 ]; then
-            echo "::error::deploy.tar is suspiciously small ($bytes bytes) — frames likely missing"
+          desktop=$(find public/frames/munich-yellow/desktop -name 'frame_*.png' | wc -l | tr -d ' ')
+          explod=$(find public/frames/munich-yellow/explod -name 'frame_*.png' | wc -l | tr -d ' ')
+          color=$(find public/frames/munich-yellow/colorways -name 'frame_*.png' | wc -l | tr -d ' ')
+          echo "frames: desktop=$desktop explod=$explod colorways=$color"
+          if [ "$desktop" -lt 120 ] || [ "$explod" -lt 96 ] || [ "$color" -lt 96 ]; then
+            echo "::error::Missing Munich frame plates"
             exit 1
           fi
 
-      # CapRover app-token deploys do NOT stream Docker build logs here.
-      # Watch CapRover → App → Deployment after "Upload done".
-      - name: Deploy to CapRover
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ steps.cfg.outputs.image }}:${{ steps.cfg.outputs.tag }}
+            ${{ steps.cfg.outputs.image }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Make GHCR package public (CapRover pull)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # CapRover pulls without our GITHUB_TOKEN; public package avoids 401.
+          # If this fails (org policy), configure CapRover Cluster → Registries instead.
+          gh api \
+            --method PUT \
+            -H "Accept: application/vnd.github+json" \
+            "/user/packages/container/catalog-web-site/visibility" \
+            -f visibility=public \
+            || gh api \
+              --method PUT \
+              -H "Accept: application/vnd.github+json" \
+              "/orgs/${{ github.repository_owner }}/packages/container/catalog-web-site/visibility" \
+              -f visibility=public \
+            || echo "Could not set package visibility; ensure CapRover can pull GHCR."
+
+      - name: Deploy image to CapRover
         env:
           CAPROVER_SERVER: ${{ steps.cfg.outputs.server }}
           APP_NAME: ${{ steps.cfg.outputs.app }}
           APP_TOKEN: ${{ secrets.APP_TOKEN }}
           CAPROVER_APP_TOKEN: ${{ secrets.CAPROVER_APP_TOKEN }}
+          IMAGE: ${{ steps.cfg.outputs.image }}:${{ steps.cfg.outputs.tag }}
         run: |
           set -euo pipefail
           TOKEN="${APP_TOKEN:-${CAPROVER_APP_TOKEN:-}}"
           npm install -g caprover
-          test -f ./deploy.tar
-          echo "Deploying $(ls -lh deploy.tar | awk '{print $5}') → $CAPROVER_SERVER / $APP_NAME"
+          echo "Deploying pre-built $IMAGE → $CAPROVER_SERVER / $APP_NAME (pull only, no CapRover build)"
           caprover deploy \
             --caproverUrl "$CAPROVER_SERVER" \
             --appToken "$TOKEN" \
             --appName "$APP_NAME" \
-            --tarFile ./deploy.tar
-          echo "Upload accepted. Open CapRover → $APP_NAME → Deployment to watch the build."
+            --imageName "$IMAGE"
