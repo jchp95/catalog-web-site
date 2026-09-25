@@ -9,6 +9,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import sharp from "sharp";
+import { scrubFloorShadow } from "./lib/scrub-floor-shadow.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -127,6 +128,7 @@ for (const name of raws) {
     .toBuffer({ resolveWithObject: true });
   const pixels = new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength);
   keyGreen(pixels, info.width, info.height);
+  scrubFloorShadow(pixels, info.width, info.height);
 
   // Bounds of opaque shoe — recenter with breathing room so contain never clips
   const pad = 80;

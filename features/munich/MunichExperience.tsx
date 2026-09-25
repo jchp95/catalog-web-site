@@ -73,6 +73,16 @@ function ExperienceInner() {
 
   useEffect(() => {
     if (!revealed) return;
+    const id = requestAnimationFrame(() => {
+      void import("gsap/ScrollTrigger").then(({ ScrollTrigger }) => {
+        ScrollTrigger.refresh();
+      });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [revealed]);
+
+  useEffect(() => {
+    if (!revealed) return;
     const nodes = document.querySelectorAll<HTMLElement>("[data-tone]");
     const io = new IntersectionObserver(
       (entries) => {

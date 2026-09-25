@@ -2,7 +2,19 @@
  * Central asset slots — keyed WebP cuts + original plates where needed.
  * Regenerate cuts: npm run cuts:munich
  * Regenerate frames: npm run frames:munich / npm run frames:munich:explod
+ *
+ * Bump FRAME_CACHE_BUST whenever frame PNGs are regenerated so production
+ * browsers don't mix cached old plates with new ones (same path).
  */
+export const FRAME_CACHE_BUST = "20260925b";
+
+/** Append cache-bust query to frame paths so prod browsers don't mix old PNGs. */
+export function framesAsset(path: string): string {
+  if (!path.startsWith("/frames/")) return path;
+  const join = path.includes("?") ? "&" : "?";
+  return `${path}${join}v=${FRAME_CACHE_BUST}`;
+}
+
 export type FrameSequenceVariant = {
   path: string;
   extension: string;
@@ -49,7 +61,7 @@ export const ASSETS = {
   EXPLODED_VIDEO: "/videos/munich-sneaker-exploded.mp4",
   COLORWAY_VIDEO: "/videos/munich-sneaker-colorways.mp4",
   /** Clean keyed plate for zoom (no baked contact shadow). */
-  ZOOM_SHOE: "/frames/munich-yellow/desktop/frame_0001.png",
+  ZOOM_SHOE: framesAsset("/frames/munich-yellow/desktop/frame_0001.png"),
   /** Transparent product cuts (cream studio keyed offline). */
   CUTS: {
     side: "/munich/cuts/side.webp",
@@ -78,17 +90,17 @@ export const ASSETS = {
     tongue: "/munich/cuts/top.webp",
   },
   COLORWAYS: [
-    { id: "mustard-navy", label: "Mostaza / Azul", swatch: "#D6A12B", image: "/frames/munich-yellow/colorways/frame_0008.png" },
-    { id: "white-blue", label: "Hueso / Marino", swatch: "#E6DDCB", image: "/frames/munich-yellow/colorways/frame_0033.png" },
-    { id: "black-white", label: "Carbón / Blanco", swatch: "#2B2A2B", image: "/frames/munich-yellow/colorways/frame_0058.png" },
-    { id: "burgundy", label: "Burdeos / Crema", swatch: "#6C1E2A", image: "/frames/munich-yellow/colorways/frame_0085.png" },
+    { id: "mustard-navy", label: "Mostaza / Azul", swatch: "#D6A12B", image: framesAsset("/frames/munich-yellow/colorways/frame_0008.png") },
+    { id: "white-blue", label: "Hueso / Marino", swatch: "#E6DDCB", image: framesAsset("/frames/munich-yellow/colorways/frame_0033.png") },
+    { id: "black-white", label: "Carbón / Blanco", swatch: "#2B2A2B", image: framesAsset("/frames/munich-yellow/colorways/frame_0058.png") },
+    { id: "burgundy", label: "Burdeos / Crema", swatch: "#6C1E2A", image: framesAsset("/frames/munich-yellow/colorways/frame_0085.png") },
   ],
   /** Keyed orbit frames — transparent, no baked studio shadow. */
   EDITORIAL: {
-    hero: "/frames/munich-yellow/desktop/frame_0060.png",
-    float: "/frames/munich-yellow/desktop/frame_0045.png",
-    tall: "/frames/munich-yellow/desktop/frame_0060.png",
-    wide: "/frames/munich-yellow/desktop/frame_0015.png",
+    hero: framesAsset("/frames/munich-yellow/desktop/frame_0060.png"),
+    float: framesAsset("/frames/munich-yellow/desktop/frame_0045.png"),
+    tall: framesAsset("/frames/munich-yellow/desktop/frame_0060.png"),
+    wide: framesAsset("/frames/munich-yellow/desktop/frame_0015.png"),
   },
   EDITORIAL_VIDEO: "/videos/munich-sneaker-360-turntable.mp4",
   HORIZONTAL: {
@@ -100,23 +112,23 @@ export const ASSETS = {
   },
   /** Collection grid — clean colorway stills (stable hold of each morph). */
   GRID: [
-    { id: "barru", name: "BARRU 8290", price: 110, image: "/frames/munich-yellow/colorways/frame_0008.png", span: "wide" as const },
-    { id: "goal", name: "BARRU 8290", price: 110, image: "/frames/munich-yellow/colorways/frame_0033.png", span: "narrow" as const },
-    { id: "dash", name: "BARRU 8290", price: 115, image: "/frames/munich-yellow/colorways/frame_0058.png", span: "mid" as const },
-    { id: "x", name: "BARRU 8290", price: 115, image: "/frames/munich-yellow/colorways/frame_0085.png", span: "mid" as const },
+    { id: "barru", name: "BARRU 8290", price: 110, image: framesAsset("/frames/munich-yellow/colorways/frame_0008.png"), span: "wide" as const },
+    { id: "goal", name: "BARRU 8290", price: 110, image: framesAsset("/frames/munich-yellow/colorways/frame_0033.png"), span: "narrow" as const },
+    { id: "dash", name: "BARRU 8290", price: 115, image: framesAsset("/frames/munich-yellow/colorways/frame_0058.png"), span: "mid" as const },
+    { id: "x", name: "BARRU 8290", price: 115, image: framesAsset("/frames/munich-yellow/colorways/frame_0085.png"), span: "mid" as const },
   ],
   /** Stable stills per colorway id (mn/bn/bk/bu) from keyed morph sequence. */
   COLORWAY_STILLS: {
-    mn: "/frames/munich-yellow/colorways/frame_0008.png",
-    bn: "/frames/munich-yellow/colorways/frame_0033.png",
-    bk: "/frames/munich-yellow/colorways/frame_0058.png",
-    bu: "/frames/munich-yellow/colorways/frame_0085.png",
+    mn: framesAsset("/frames/munich-yellow/colorways/frame_0008.png"),
+    bn: framesAsset("/frames/munich-yellow/colorways/frame_0033.png"),
+    bk: framesAsset("/frames/munich-yellow/colorways/frame_0058.png"),
+    bu: framesAsset("/frames/munich-yellow/colorways/frame_0085.png"),
   },
 } as const;
 
 export function frameUrlFromConfig(cfg: FrameSequenceVariant, index: number): string {
   const n = String(index + 1).padStart(cfg.pad, "0");
-  return `${cfg.path}${n}.${cfg.extension}`;
+  return `${cfg.path}${n}.${cfg.extension}?v=${FRAME_CACHE_BUST}`;
 }
 
 export function frameUrl(

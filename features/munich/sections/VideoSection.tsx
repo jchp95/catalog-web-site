@@ -2,11 +2,13 @@
 
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ensureGsapPlugins } from "../hooks/useGSAPContext";
 import { ASSETS } from "../config/assets";
 
 export function VideoSection() {
   const root = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     ensureGsapPlugins();
@@ -18,6 +20,19 @@ export function VideoSection() {
     const lines = el.querySelectorAll(".munich-vid-l");
     const dark = el.querySelector(".munich-vid-dark");
     const cap = el.querySelector(".munich-vid-cap");
+    const video = videoRef.current;
+
+    const tryPlay = () => {
+      video?.play().catch(() => {});
+    };
+    tryPlay();
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) tryPlay();
+      },
+      { threshold: 0.2 },
+    );
+    io.observe(el);
 
     const tl = gsap.timeline({
       scrollTrigger: {
@@ -26,6 +41,8 @@ export function VideoSection() {
         end: "bottom bottom",
         scrub: 1,
         pin,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
       },
     });
 
@@ -50,7 +67,10 @@ export function VideoSection() {
 
     tl.to(dark, { opacity: 0.94, duration: 0.2 }, 0.78);
 
+    requestAnimationFrame(() => ScrollTrigger.refresh());
+
     return () => {
+      io.disconnect();
       tl.scrollTrigger?.kill();
       tl.kill();
     };
@@ -72,11 +92,13 @@ export function VideoSection() {
           <div className="munich-vid-box">
             <div className="munich-vid-media">
               <video
+                ref={videoRef}
                 src={ASSETS.EDITORIAL_VIDEO}
                 muted
                 loop
                 playsInline
                 autoPlay
+                preload="auto"
                 aria-hidden="true"
               />
             </div>

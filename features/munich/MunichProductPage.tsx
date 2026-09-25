@@ -6,7 +6,7 @@ import gsap from "gsap";
 import { CartProvider, useCart } from "./components/ui/CartContext";
 import { ensureGsapPlugins } from "./hooks/useGSAPContext";
 import { useMunichReducedMotion } from "./hooks/useMunichReducedMotion";
-import { ASSETS } from "./config/assets";
+import { ASSETS, framesAsset } from "./config/assets";
 import { COLORWAYS, type ColorwayId } from "./config/tokens";
 
 const SIZES = [39, 40, 41, 42, 43, 44, 45];
@@ -15,7 +15,7 @@ const GALLERY = [
   { id: "side", label: "Perfil", src: ASSETS.EDITORIAL.hero },
   { id: "three", label: "Tres cuartos", src: ASSETS.EDITORIAL.float },
   { id: "rear", label: "Trasera", src: ASSETS.EDITORIAL.wide },
-  { id: "orbit", label: "Lateral", src: "/frames/munich-yellow/desktop/frame_0001.png" },
+  { id: "orbit", label: "Lateral", src: framesAsset("/frames/munich-yellow/desktop/frame_0001.png") },
 ] as const;
 
 const DETAILS = [

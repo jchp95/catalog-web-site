@@ -7,6 +7,17 @@ const nextConfig: NextConfig = {
   // keeps the CapRover/Docker production image small and the build copyable
   // in one shot, instead of shipping the full node_modules tree.
   output: "standalone",
+  async headers() {
+    return [
+      {
+        // Versioned via ?v= in app URLs; keep short TTL as a safety net.
+        source: "/frames/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=3600, must-revalidate" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

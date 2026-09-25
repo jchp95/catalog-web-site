@@ -1301,8 +1301,7 @@
 .munich-vid { height: 340vh; position: relative; }
 .munich-vid-track { height: 100%; }
 .munich-vid-pin {
-  position: sticky;
-  top: 0;
+  position: relative;
   height: 100vh;
   overflow: hidden;
   background: var(--m-bone);
