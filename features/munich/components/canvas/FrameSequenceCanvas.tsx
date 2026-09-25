@@ -32,6 +32,7 @@ export function FrameSequenceCanvas({
   pad = 0.04,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const lastFrameRef = useRef<HTMLImageElement | null>(null);
   const mobile = useIsMobile();
   const reduced = useMunichReducedMotion();
   const variant = mobile ? "mobile" : "desktop";
@@ -69,6 +70,34 @@ export function FrameSequenceCanvas({
     poster.decoding = "async";
     poster.src = ASSETS.CUTS.side;
 
+    const pickFrame = () => {
+      if (!useImages) return null;
+      const idx = Math.round(seq.getCurrentFrame());
+      const exact = seq.getFrame(idx);
+      if (exact && exact.complete && exact.naturalWidth > 0) {
+        lastFrameRef.current = exact;
+        return exact;
+      }
+      // Prefer a nearby loaded plate over the static poster cut — that flash
+      // felt like two animations fighting while frames streamed in.
+      for (let d = 1; d <= 8; d++) {
+        const a = seq.getFrame(idx + d);
+        if (a?.complete && a.naturalWidth > 0) {
+          lastFrameRef.current = a;
+          return a;
+        }
+        const b = seq.getFrame(idx - d);
+        if (b?.complete && b.naturalWidth > 0) {
+          lastFrameRef.current = b;
+          return b;
+        }
+      }
+      if (lastFrameRef.current?.complete && lastFrameRef.current.naturalWidth > 0) {
+        return lastFrameRef.current;
+      }
+      return poster.complete && poster.naturalWidth > 0 ? poster : null;
+    };
+
     const render = () => {
       const parent = canvas.parentElement;
       if (!parent) return;
@@ -85,13 +114,7 @@ export function FrameSequenceCanvas({
       ctx.rotate((skew * Math.PI) / 180);
       ctx.translate(-cssW / 2, -cssH / 2);
 
-      const img = useImages ? seq.getFrame(seq.getCurrentFrame()) : undefined;
-      const draw =
-        img && img.complete && img.naturalWidth > 0
-          ? img
-          : poster.complete && poster.naturalWidth > 0
-            ? poster
-            : null;
+      const draw = pickFrame();
       if (draw) {
         drawContain(ctx, draw, cssW, cssH, draw.naturalWidth, draw.naturalHeight, pad);
       }

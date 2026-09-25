@@ -463,8 +463,7 @@
   height: 760vh;
 }
 .munich-rot-pin {
-  position: sticky;
-  top: 0;
+  position: relative;
   height: 100vh;
   overflow: hidden;
   background: var(--m-carbon);
@@ -690,8 +689,7 @@
 /* —— Explosion (scroll-scrubbed keyed plates) —— */
 .munich-exp { height: 480vh; position: relative; }
 .munich-exp-pin {
-  position: sticky;
-  top: 0;
+  position: relative;
   height: 100vh;
   overflow: hidden;
   background:
@@ -818,8 +816,7 @@
 .munich-macro { height: 340vh; position: relative; }
 .munich-macro-track { height: 100%; }
 .munich-macro-pin {
-  position: sticky;
-  top: 0;
+  position: relative;
   height: 100vh;
   overflow: hidden;
   background: linear-gradient(180deg, var(--m-mustard) 0%, var(--m-navy) 55%, #0a1226 100%);
@@ -925,8 +922,7 @@
 .munich-hor { height: 540vh; position: relative; }
 .munich-hor-spacer { height: 100%; }
 .munich-hor-pin {
-  position: sticky;
-  top: 0;
+  position: relative;
   height: 100vh;
   overflow: hidden;
   background: var(--m-bone);
@@ -1049,8 +1045,7 @@
   height: 420vh;
 }
 .munich-col-pin {
-  position: sticky;
-  top: 0;
+  position: relative;
   height: 100vh;
   overflow: hidden;
   display: flex;
