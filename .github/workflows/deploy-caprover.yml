@@ -1,9 +1,11 @@
 # Deploy to CapRover on every push to main (and manual runs).
-# Secrets required (Settings → Secrets and variables → Actions):
-#   CAPROVER_SERVER  e.g. https://captain.apps.solva.click
-#   APP_NAME         e.g. catalog-web-site
-#   APP_TOKEN        CapRover app token (Deployment tab → Enable App Token)
 #
+# Repository secrets (Settings → Secrets and variables → Actions → Secrets):
+#   CAPROVER_SERVER  = https://captain.apps.solva.click   (no trailing path)
+#   APP_NAME         = catalog-web-site
+#   APP_TOKEN        = token from CapRover → App → Deployment → Enable App Token
+#
+# Must be Repository secrets (not Environment secrets, not Variables).
 # Docs: https://caprover.com/docs/ci-cd-integration/deploy-from-github.html
 
 name: Deploy CapRover
@@ -20,25 +22,45 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 45
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Verify CapRover secrets
+      - name: Resolve CapRover config
+        id: cfg
+        env:
+          CAPROVER_SERVER: ${{ secrets.CAPROVER_SERVER }}
+          APP_NAME: ${{ secrets.APP_NAME }}
+          APP_TOKEN: ${{ secrets.APP_TOKEN }}
+          # Aliases (if secrets were named differently)
+          CAPROVER_URL: ${{ secrets.CAPROVER_URL }}
+          SERVER_URL: ${{ secrets.SERVER_URL }}
+          CAPROVER_APP: ${{ secrets.CAPROVER_APP }}
+          CAPROVER_APP_TOKEN: ${{ secrets.CAPROVER_APP_TOKEN }}
         run: |
           set -euo pipefail
-          missing=0
-          if [ -z "${{ secrets.CAPROVER_SERVER }}" ]; then echo "::error::CAPROVER_SERVER secret is empty"; missing=1; fi
-          if [ -z "${{ secrets.APP_NAME }}" ]; then echo "::error::APP_NAME secret is empty"; missing=1; fi
-          if [ -z "${{ secrets.APP_TOKEN }}" ]; then echo "::error::APP_TOKEN secret is empty"; missing=1; fi
-          if [ "$missing" -ne 0 ]; then exit 1; fi
-          # Print non-secret values so misnamed apps/URLs are obvious in the log
-          echo "CAPROVER_SERVER=${{ secrets.CAPROVER_SERVER }}"
-          echo "APP_NAME=${{ secrets.APP_NAME }}"
-          echo "APP_TOKEN length=${#TOKEN}"
-        env:
-          TOKEN: ${{ secrets.APP_TOKEN }}
+          SERVER="${CAPROVER_SERVER:-${CAPROVER_URL:-${SERVER_URL:-}}}"
+          APP="${APP_NAME:-${CAPROVER_APP:-}}"
+          TOKEN="${APP_TOKEN:-${CAPROVER_APP_TOKEN:-}}"
+          SERVER="${SERVER%/}"
+
+          if [ -z "$SERVER" ] || [ -z "$APP" ] || [ -z "$TOKEN" ]; then
+            echo "::error::Missing CapRover secrets for this workflow."
+            echo "Add them as Repository secrets (NOT Environment secrets, NOT Variables):"
+            echo "  Settings → Secrets and variables → Actions → New repository secret"
+            echo "Required exact names:"
+            echo "  CAPROVER_SERVER = https://captain.apps.solva.click"
+            echo "  APP_NAME        = catalog-web-site"
+            echo "  APP_TOKEN       = (from CapRover app Deployment tab)"
+            echo "Detected lengths: SERVER=${#SERVER} APP=${#APP} TOKEN=${#TOKEN}"
+            exit 1
+          fi
+
+          echo "server=$SERVER" >> "$GITHUB_OUTPUT"
+          echo "app=$APP" >> "$GITHUB_OUTPUT"
+          echo "Using CAPROVER_SERVER=$SERVER APP_NAME=$APP APP_TOKEN_len=${#TOKEN}"
 
       - name: Create CapRover deploy.tar
         run: |
@@ -82,8 +104,7 @@ jobs:
             --exclude='./public/images/pulso.png' \
             .
           ls -lh deploy.tar
-          # Sanity: must include captain-definition + Dockerfile + app sources
-          tar -tf deploy.tar | rg -n '^\./captain-definition$|^\./Dockerfile$|^\./package.json$|^\./features/munich/' | head -20
+          tar -tf deploy.tar | grep -E '^\./(captain-definition|Dockerfile|package\.json)$|^\./features/munich/' | head -20
           bytes=$(wc -c < deploy.tar)
           echo "deploy.tar bytes=$bytes"
           if [ "$bytes" -lt 1000000 ]; then
@@ -91,25 +112,23 @@ jobs:
             exit 1
           fi
 
-      # Use CLI on the runner (not the Docker action) so logs are visible and
-      # ./deploy.tar from the previous step is definitely the file that uploads.
-      # Note: CapRover app-token deploys do NOT stream build logs here — check
-      # CapRover → App → Deployment for the real Docker build output.
+      # CapRover app-token deploys do NOT stream Docker build logs here.
+      # Watch CapRover → App → Deployment after "Upload done".
       - name: Deploy to CapRover
+        env:
+          CAPROVER_SERVER: ${{ steps.cfg.outputs.server }}
+          APP_NAME: ${{ steps.cfg.outputs.app }}
+          APP_TOKEN: ${{ secrets.APP_TOKEN }}
+          CAPROVER_APP_TOKEN: ${{ secrets.CAPROVER_APP_TOKEN }}
         run: |
           set -euo pipefail
+          TOKEN="${APP_TOKEN:-${CAPROVER_APP_TOKEN:-}}"
           npm install -g caprover
           test -f ./deploy.tar
-          # Normalize trailing slash on server URL
-          SERVER="${CAPROVER_SERVER%/}"
-          echo "Deploying $(ls -lh deploy.tar | awk '{print $5}') to $SERVER app=$APP_NAME"
+          echo "Deploying $(ls -lh deploy.tar | awk '{print $5}') → $CAPROVER_SERVER / $APP_NAME"
           caprover deploy \
-            --caproverUrl "$SERVER" \
-            --appToken "$APP_TOKEN" \
+            --caproverUrl "$CAPROVER_SERVER" \
+            --appToken "$TOKEN" \
             --appName "$APP_NAME" \
             --tarFile ./deploy.tar
           echo "Upload accepted. Open CapRover → $APP_NAME → Deployment to watch the build."
-        env:
-          CAPROVER_SERVER: ${{ secrets.CAPROVER_SERVER }}
-          APP_NAME: ${{ secrets.APP_NAME }}
-          APP_TOKEN: ${{ secrets.APP_TOKEN }}
