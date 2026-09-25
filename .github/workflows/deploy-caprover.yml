@@ -25,6 +25,21 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Verify CapRover secrets
+        run: |
+          set -euo pipefail
+          missing=0
+          if [ -z "${{ secrets.CAPROVER_SERVER }}" ]; then echo "::error::CAPROVER_SERVER secret is empty"; missing=1; fi
+          if [ -z "${{ secrets.APP_NAME }}" ]; then echo "::error::APP_NAME secret is empty"; missing=1; fi
+          if [ -z "${{ secrets.APP_TOKEN }}" ]; then echo "::error::APP_TOKEN secret is empty"; missing=1; fi
+          if [ "$missing" -ne 0 ]; then exit 1; fi
+          # Print non-secret values so misnamed apps/URLs are obvious in the log
+          echo "CAPROVER_SERVER=${{ secrets.CAPROVER_SERVER }}"
+          echo "APP_NAME=${{ secrets.APP_NAME }}"
+          echo "APP_TOKEN length=${#TOKEN}"
+        env:
+          TOKEN: ${{ secrets.APP_TOKEN }}
+
       - name: Create CapRover deploy.tar
         run: |
           set -euo pipefail
@@ -67,10 +82,34 @@ jobs:
             --exclude='./public/images/pulso.png' \
             .
           ls -lh deploy.tar
+          # Sanity: must include captain-definition + Dockerfile + app sources
+          tar -tf deploy.tar | rg -n '^\./captain-definition$|^\./Dockerfile$|^\./package.json$|^\./features/munich/' | head -20
+          bytes=$(wc -c < deploy.tar)
+          echo "deploy.tar bytes=$bytes"
+          if [ "$bytes" -lt 1000000 ]; then
+            echo "::error::deploy.tar is suspiciously small ($bytes bytes)"
+            exit 1
+          fi
 
+      # Use CLI on the runner (not the Docker action) so logs are visible and
+      # ./deploy.tar from the previous step is definitely the file that uploads.
+      # Note: CapRover app-token deploys do NOT stream build logs here — check
+      # CapRover → App → Deployment for the real Docker build output.
       - name: Deploy to CapRover
-        uses: caprover/deploy-from-github@v1.1.2
-        with:
-          server: ${{ secrets.CAPROVER_SERVER }}
-          app: ${{ secrets.APP_NAME }}
-          token: ${{ secrets.APP_TOKEN }}
+        run: |
+          set -euo pipefail
+          npm install -g caprover
+          test -f ./deploy.tar
+          # Normalize trailing slash on server URL
+          SERVER="${CAPROVER_SERVER%/}"
+          echo "Deploying $(ls -lh deploy.tar | awk '{print $5}') to $SERVER app=$APP_NAME"
+          caprover deploy \
+            --caproverUrl "$SERVER" \
+            --appToken "$APP_TOKEN" \
+            --appName "$APP_NAME" \
+            --tarFile ./deploy.tar
+          echo "Upload accepted. Open CapRover → $APP_NAME → Deployment to watch the build."
+        env:
+          CAPROVER_SERVER: ${{ secrets.CAPROVER_SERVER }}
+          APP_NAME: ${{ secrets.APP_NAME }}
+          APP_TOKEN: ${{ secrets.APP_TOKEN }}
