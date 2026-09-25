@@ -6,7 +6,7 @@
  * Bump FRAME_CACHE_BUST whenever frame PNGs are regenerated so production
  * browsers don't mix cached old plates with new ones (same path).
  */
-export const FRAME_CACHE_BUST = "20260925b";
+export const FRAME_CACHE_BUST = "20260925c";
 
 /** Append cache-bust query to frame paths so prod browsers don't mix old PNGs. */
 export function framesAsset(path: string): string {

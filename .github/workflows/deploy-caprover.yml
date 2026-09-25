@@ -15,9 +15,12 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Never cancel an in-flight CapRover deploy: large frame tarballs take long to
+# upload/build, and cancel-in-progress left production on a stale image while
+# newer scrubbed frames sat only on GitHub.
 concurrency:
   group: caprover-deploy
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -105,10 +108,19 @@ jobs:
             .
           ls -lh deploy.tar
           tar -tf deploy.tar | grep -E '^\./(captain-definition|Dockerfile|package\.json)$|^\./features/munich/' | head -20
+          desktop_frames=$(tar -tf deploy.tar | grep -c '^\./public/frames/munich-yellow/desktop/frame_.*\.png$' || true)
+          explod_frames=$(tar -tf deploy.tar | grep -c '^\./public/frames/munich-yellow/explod/frame_.*\.png$' || true)
+          color_frames=$(tar -tf deploy.tar | grep -c '^\./public/frames/munich-yellow/colorways/frame_.*\.png$' || true)
+          echo "frames in tar: desktop=$desktop_frames explod=$explod_frames colorways=$color_frames"
+          if [ "$desktop_frames" -lt 120 ] || [ "$explod_frames" -lt 96 ] || [ "$color_frames" -lt 96 ]; then
+            echo "::error::deploy.tar missing Munich frame plates (desktop=$desktop_frames explod=$explod_frames colorways=$color_frames)"
+            exit 1
+          fi
           bytes=$(wc -c < deploy.tar)
           echo "deploy.tar bytes=$bytes"
-          if [ "$bytes" -lt 1000000 ]; then
-            echo "::error::deploy.tar is suspiciously small ($bytes bytes)"
+          # Scrubbed orbit+explod+colorways is ~80MB+; a tiny tar means frames were dropped.
+          if [ "$bytes" -lt 50000000 ]; then
+            echo "::error::deploy.tar is suspiciously small ($bytes bytes) — frames likely missing"
             exit 1
           fi
 
