@@ -1,4 +1,6 @@
-# syntax=docker/dockerfile:1
+# No `# syntax=docker/dockerfile:1` — CapRover BuildKit often fails mid-deploy with
+# "no active session / context deadline exceeded" while resolving that frontend
+# after a long next build + GHCR push. Plain Dockerfile syntax is enough here.
 
 FROM node:22-alpine AS deps
 WORKDIR /app
